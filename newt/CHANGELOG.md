@@ -1,5 +1,8 @@
 # Changelog
 
+## 🔹 Version v1.10.1 - (04.03.2026)
+- Updated newt to v1.10.1
+
 ## 🔹 Version 1.9.1 - (19.02.2026)
 - Updated newt to 1.9.1
 
