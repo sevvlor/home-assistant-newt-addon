@@ -1,0 +1,68 @@
+name: Update changelogs on version bump
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'newt/config.yaml'
+
+permissions:
+  contents: write
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version from config.yaml
+        id: version
+        run: |
+          VERSION=$(grep -m1 '^version:' newt/config.yaml | sed -E 's/version: *"(.*)"/\1/')
+          if [ -z "$VERSION" ]; then
+            echo "Could not extract version from newt/config.yaml" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check if a changelog entry already exists for this version
+        id: check
+        run: |
+          if grep -qE "Version v?${{ steps.version.outputs.version }} " CHANGELOG.md; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Prepend changelog entry to both CHANGELOG.md files
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          DATE=$(date +'%d.%m.%Y')
+
+          for FILE in CHANGELOG.md newt/CHANGELOG.md; do
+            HEADER_LINE1=$(sed -n '1p' "$FILE")
+            TMP=$(mktemp)
+            {
+              printf '%s\n' "$HEADER_LINE1"
+              printf '\n'
+              printf '%s\n' "## 🔹 Version ${VERSION} - (${DATE})"
+              printf '%s\n' "- Updated newt to ${VERSION}"
+              printf '\n'
+              tail -n +3 "$FILE"
+            } > "$TMP"
+            mv "$TMP" "$FILE"
+          done
+
+      - name: Commit and push
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md newt/CHANGELOG.md
+          git commit -m "docs: changelog entry for Newt ${{ steps.version.outputs.version }}"
+          git push

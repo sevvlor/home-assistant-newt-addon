@@ -1,0 +1,43 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "dependencyDashboard": true,
+  "platformAutomerge": true,
+  "automerge": true,
+  "automergeType": "pr",
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["major", "minor", "patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
+      "matchManagers": ["custom.regex"],
+      "matchDepNames": ["fosrl/newt"],
+      "groupName": "Newt versie"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["newt/Dockerfile"],
+      "matchStrings": [
+        "ARG NEWT_VERSION=(?<currentValue>[^\\s]+)"
+      ],
+      "depNameTemplate": "fosrl/newt",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v?(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["newt/config.yaml"],
+      "matchStrings": [
+        "version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "fosrl/newt",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v?(?<version>.*)$"
+    }
+  ]
+}
