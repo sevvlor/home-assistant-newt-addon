@@ -1,5 +1,5 @@
 # Use the official Home Assistant add-on base image
-FROM ghcr.io/hassio-addons/base:21.0.7
+FROM ghcr.io/hassio-addons/base:21.0.8
 
 # Define the Newt version (used everywhere below)
 ARG NEWT_VERSION=1.18.0
